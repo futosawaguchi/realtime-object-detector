@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime Object Detector</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-dot"></div>
+    <h1>Realtime Object Detector</h1>
+  </header>
+
+  <main>
+
+    <!-- カメラ映像 -->
+    <section class="camera-section">
+      <img
+        class="camera-feed"
+        src="/video_feed"
+        alt="Camera Feed"
+      />
+    </section>
+
+    <!-- 下部パネル -->
+    <div class="panels">
+
+      <!-- YOLO検出リスト -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">YOLO Detection</span>
+          <span class="panel-badge" id="detection-count">0 objects</span>
+        </div>
+        <div class="detection-list" id="detection-list">
+          <p class="empty-message">検出中...</p>
+        </div>
+      </div>
+
+      <!-- Azure分析結果 -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Azure Vision</span>
+          <span class="panel-badge" id="azure-status">待機中</span>
+        </div>
+        <p class="azure-caption empty" id="azure-caption">
+          物体の変化が検出されると分析が始まります
+        </p>
+        <div class="tag-list" id="tag-list"></div>
+      </div>
+
+    </div>
+
+    <p class="status-bar" id="status-bar">接続中...</p>
+
+  </main>
+
+  <script>
+    // YOLO検出結果を1秒ごとにポーリング
+    async function fetchDetections() {
+      try {
+        const res = await fetch("/api/detections");
+        const data = await res.json();
+
+        const list = document.getElementById("detection-list");
+        const count = document.getElementById("detection-count");
+
+        count.textContent = `${data.length} objects`;
+
+        if (data.length === 0) {
+          list.innerHTML = '<p class="empty-message">物体が検出されていません</p>';
+          return;
+        }
+
+        // 信頼度で降順ソート
+        data.sort((a, b) => b.confidence - a.confidence);
+
+        list.innerHTML = data.map(item => `
+          <div class="detection-item">
+            <span class="detection-label">${item.label}</span>
+            <div class="confidence-bar-wrapper">
+              <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${item.confidence * 100}%"></div>
+              </div>
+              <span class="confidence-text">${(item.confidence * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (e) {
+        console.error("Detection fetch error:", e);
+      }
+    }
+
+    // Azure分析結果を2秒ごとにポーリング
+    async function fetchAzure() {
+      try {
+        const res = await fetch("/api/azure");
+        const data = await res.json();
+
+        const caption = document.getElementById("azure-caption");
+        const tagList = document.getElementById("tag-list");
+        const status = document.getElementById("azure-status");
+
+        if (!data || !data.caption) {
+          return;
+        }
+
+        // キャプション更新
+        caption.textContent = data.caption;
+        caption.classList.remove("empty");
+        status.textContent = "分析済み";
+
+        // タグ更新（信頼度0.7以上のみ表示）
+        const highConfTags = (data.tags || []).filter(t => t.confidence >= 0.7);
+        tagList.innerHTML = highConfTags
+          .map(t => `<span class="tag">${t.name}</span>`)
+          .join("");
+
+      } catch (e) {
+        console.error("Azure fetch error:", e);
+      }
+    }
+
+    // ステータスバー更新
+    function updateStatus() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("ja-JP");
+      document.getElementById("status-bar").textContent =
+        `最終更新: ${timeStr}`;
+    }
+
+    // ポーリング開始
+    setInterval(fetchDetections, 1000);
+    setInterval(fetchAzure, 2000);
+    setInterval(updateStatus, 1000);
+
+    // 初回即時実行
+    fetchDetections();
+    fetchAzure();
+    updateStatus();
+  </script>
+
+</body>
+</html>
