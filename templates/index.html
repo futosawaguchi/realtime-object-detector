@@ -15,7 +15,7 @@
 
   <main>
 
-    <!-- カメラ映像 -->
+    <!-- 左：カメラ映像 -->
     <section class="camera-section">
       <img
         class="camera-feed"
@@ -24,7 +24,7 @@
       />
     </section>
 
-    <!-- 下部パネル -->
+    <!-- 右：パネル群 -->
     <div class="panels">
 
       <!-- YOLO検出リスト -->
@@ -44,20 +44,21 @@
           <span class="panel-title">Azure Vision</span>
           <span class="panel-badge" id="azure-status">待機中</span>
         </div>
-        <p class="azure-caption empty" id="azure-caption">
-          物体の変化が検出されると分析が始まります
-        </p>
-        <div class="tag-list" id="tag-list"></div>
+        <div class="azure-body">
+          <p class="azure-caption empty" id="azure-caption">
+            物体の変化が検出されると分析が始まります
+          </p>
+          <div class="tag-list" id="tag-list"></div>
+        </div>
       </div>
 
     </div>
 
-    <p class="status-bar" id="status-bar">接続中...</p>
-
   </main>
 
+  <p class="status-bar" id="status-bar">接続中...</p>
+
   <script>
-    // YOLO検出結果を1秒ごとにポーリング
     async function fetchDetections() {
       try {
         const res = await fetch("/api/detections");
@@ -73,7 +74,6 @@
           return;
         }
 
-        // 信頼度で降順ソート
         data.sort((a, b) => b.confidence - a.confidence);
 
         list.innerHTML = data.map(item => `
@@ -93,7 +93,6 @@
       }
     }
 
-    // Azure分析結果を2秒ごとにポーリング
     async function fetchAzure() {
       try {
         const res = await fetch("/api/azure");
@@ -103,16 +102,12 @@
         const tagList = document.getElementById("tag-list");
         const status = document.getElementById("azure-status");
 
-        if (!data || !data.caption) {
-          return;
-        }
+        if (!data || !data.caption) return;
 
-        // キャプション更新
         caption.textContent = data.caption;
         caption.classList.remove("empty");
         status.textContent = "分析済み";
 
-        // タグ更新（信頼度0.7以上のみ表示）
         const highConfTags = (data.tags || []).filter(t => t.confidence >= 0.7);
         tagList.innerHTML = highConfTags
           .map(t => `<span class="tag">${t.name}</span>`)
@@ -123,20 +118,16 @@
       }
     }
 
-    // ステータスバー更新
     function updateStatus() {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString("ja-JP");
       document.getElementById("status-bar").textContent =
-        `最終更新: ${timeStr}`;
+        `最終更新: ${now.toLocaleTimeString("ja-JP")}`;
     }
 
-    // ポーリング開始
     setInterval(fetchDetections, 1000);
     setInterval(fetchAzure, 2000);
     setInterval(updateStatus, 1000);
 
-    // 初回即時実行
     fetchDetections();
     fetchAzure();
     updateStatus();
