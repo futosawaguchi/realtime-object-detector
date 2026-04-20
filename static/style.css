@@ -16,10 +16,13 @@ body {
 header {
   background-color: #ffffff;
   border-bottom: 1px solid #e0e0e0;
-  padding: 16px 32px;
+  padding: 18px 40px;
   display: flex;
   align-items: center;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 header h1 {
@@ -30,42 +33,47 @@ header h1 {
 }
 
 .header-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background-color: #4caf50;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50%       { opacity: 0.3; }
 }
 
 /* ===== Main Layout ===== */
 main {
-  max-width: 1200px;
-  margin: 32px auto;
-  padding: 0 24px;
+  width: 100%;
+  padding: 24px 24px 40px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* ===== Camera Feed ===== */
 .camera-section {
-  background-color: #ffffff;
+  background-color: #000;
   border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
+  width: 100%;
+  max-height: calc(100vh - 180px); /* ヘッダー・パネル・余白を引いた高さ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .camera-feed {
   width: 100%;
-  display: block;
-  max-height: 540px;
+  height: 100%;
+  max-height: calc(100vh - 180px);
   object-fit: contain;
-  background-color: #000;
+  display: block;
 }
 
 /* ===== Bottom Panels ===== */
@@ -73,60 +81,76 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 680px) {
+  .panels {
+    grid-template-columns: 1fr;
+  }
+
+  main {
+    padding: 16px 12px 32px;
+  }
+
+  header {
+    padding: 14px 20px;
+  }
 }
 
 .panel {
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 14px;
+  padding: 24px 28px;
+  min-height: 260px;
 }
 
 .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .panel-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #888888;
 }
 
 .panel-badge {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   background-color: #f0f0f0;
   color: #555555;
-  padding: 2px 8px;
+  padding: 4px 12px;
   border-radius: 99px;
+  font-weight: 500;
 }
 
 /* ===== YOLO Detection List ===== */
 .detection-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 120px;
+  gap: 10px;
 }
 
 .detection-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background-color: #fafafa;
   border: 1px solid #eeeeee;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .detection-label {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   color: #1a1a1a;
 }
@@ -134,70 +158,78 @@ main {
 .confidence-bar-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .confidence-bar {
-  width: 80px;
-  height: 4px;
-  background-color: #e0e0e0;
+  width: 120px;
+  height: 5px;
+  background-color: #e8e8e8;
   border-radius: 99px;
   overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .confidence-bar {
+    width: 60px;
+  }
 }
 
 .confidence-fill {
   height: 100%;
   background-color: #1a1a1a;
   border-radius: 99px;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
 }
 
 .confidence-text {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #888888;
-  min-width: 36px;
+  min-width: 42px;
   text-align: right;
 }
 
 .empty-message {
-  font-size: 0.85rem;
-  color: #bbbbbb;
+  font-size: 0.9rem;
+  color: #cccccc;
   text-align: center;
-  margin-top: 32px;
+  margin-top: 56px;
 }
 
 /* ===== Azure Panel ===== */
 .azure-caption {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: #1a1a1a;
-  line-height: 1.6;
-  margin-bottom: 16px;
-  min-height: 40px;
+  line-height: 1.7;
+  margin-bottom: 20px;
 }
 
 .azure-caption.empty {
-  color: #bbbbbb;
-  font-size: 0.85rem;
+  color: #cccccc;
+  font-size: 0.9rem;
+  margin-top: 56px;
+  text-align: center;
 }
 
 .tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .tag {
-  font-size: 0.78rem;
-  padding: 3px 10px;
-  background-color: #f0f0f0;
+  font-size: 0.82rem;
+  padding: 5px 14px;
+  background-color: #f2f2f2;
   color: #444444;
   border-radius: 99px;
+  font-weight: 500;
 }
 
 /* ===== Status Bar ===== */
 .status-bar {
-  font-size: 0.78rem;
-  color: #aaaaaa;
+  font-size: 0.8rem;
+  color: #bbbbbb;
   text-align: center;
-  padding-bottom: 24px;
+  padding-bottom: 8px;
 }
