@@ -1,5 +1,6 @@
 import cv2
 import threading
+import time
 
 
 class Camera:
@@ -10,6 +11,7 @@ class Camera:
         self.lock = threading.Lock()
         self.running = False
         self._thread = None
+        self._frame_count = 0
 
     def start(self):
         """カメラのキャプチャをバックグラウンドスレッドで開始"""
@@ -26,6 +28,23 @@ class Camera:
             if ret:
                 with self.lock:
                     self.frame = frame
+                self._frame_count += 1
+
+                # 約5分ごとにカメラを再起動してメモリリークを防止
+                if self._frame_count >= 9000:
+                    self._restart()
+            else:
+                # 読み取り失敗時は少し待って再試行
+                time.sleep(0.1)
+
+    def _restart(self):
+        """カメラを再起動してリソースをリフレッシュ"""
+        print("[Camera] メモリリーク防止のため再起動します...")
+        self.cap.release()
+        time.sleep(0.5)
+        self.cap = cv2.VideoCapture(self.camera_index)
+        self._frame_count = 0
+        print("[Camera] 再起動完了")
 
     def get_frame(self):
         """最新フレームを返す（なければNone）"""
